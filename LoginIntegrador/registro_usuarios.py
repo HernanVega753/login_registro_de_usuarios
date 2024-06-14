@@ -1,9 +1,11 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
 
+
 def separador(fila, columna, frame):
     separador = ttk.Separator(frame, orient='horizontal')
     separador.grid(row=fila, column=columna, columnspan=3, sticky='ew', pady=20)
+
 
 class RegistroUsuario:
     def __init__(self, root):
@@ -108,6 +110,7 @@ class RegistroUsuario:
         # Limpiar todos los campos de entrada
         for entry in self.entries.values():
             entry.delete(0, 'end')
+
 
 if __name__ == "__main__":  # se instancia para pruebas
     root = Tk()

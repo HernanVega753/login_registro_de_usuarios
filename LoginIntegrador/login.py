@@ -1,6 +1,6 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
-from registro_usuarios import RegistroUsuario  # Importa la clase RegistrarUsuario
+from registro_usuarios import RegistroUsuario  # Importa la clase RegistroUsuario
 
 class Login:
     def __init__(self, root):

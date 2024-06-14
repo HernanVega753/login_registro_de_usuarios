@@ -1,6 +1,8 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
 
+import login
+
 
 def separador(fila, columna, frame):
     separador = ttk.Separator(frame, orient='horizontal')
@@ -45,6 +47,17 @@ class RegistroUsuario:
         # Botón CONFIRMAR
         button = Button(self.frame, text="CONFIRMAR", command=self.validar_campos)
         button.grid(row=2 * len(campos) + 3, column=0, pady=10)
+
+        # Botón VOLVER
+        button = Button(self.frame, text="VOLVER", command=self.volver_al_login) # Funcion para volver
+        button.grid(row=2 * len(campos) + 4, column=0, pady=10)
+
+    def volver_al_login(self):
+        # Función para volver al login
+        self.root.withdraw()  # Oculta la ventana actual
+        Login_root = Tk()  # Crea una nueva ventana para volver al login
+        login_usuario = login.Login(Login_root)  # crea un objeto de tipo login en la ventana Login_root
+        Login_root.mainloop() # ciclo de la ventana
 
     def validar_campos(self):
         # Me aseguro que no tenga problemas (otra vez...) con las variables imprimiéndolas

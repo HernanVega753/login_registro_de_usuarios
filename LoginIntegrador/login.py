@@ -1,5 +1,6 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
+from PIL import Image, ImageTk
 from registro_usuarios import RegistroUsuario  # Importa la clase RegistroUsuario
 
 class Login:
@@ -11,47 +12,64 @@ class Login:
         self.frame = Frame(root)
         self.frame.pack(fill='both', expand=True)
 
+        # Carga y coloca la imagen
+        self.cargar_imagen("img/bytebusters_constructora.png")
+
+        # Frame para el formulario
+        self.form_frame = Frame(self.frame)
+        self.form_frame.grid(row=0, column=1, padx=20, pady=20)
+
         # Label Título
-        label = Label(self.frame, text="Ingreso de usuarios | CONSTRUCTORA BYTEBUSTERS")
+        label = Label(self.form_frame, text="Ingreso de usuarios | CONSTRUCTORA BYTEBUSTERS")
         label.grid()
 
         # Separador horizontal
-        self.separador(1, 0)
+        self.separador(1, 0, self.form_frame)
 
         # Guardo los nombres que tendrán los Labels y los posiciono
         campos = ['Usuario', 'Contraseña']
         self.entries = {}  # Diccionario para guardar las respuestas
         for i, campo in enumerate(campos):
-            label = Label(self.frame, text=campo)
+            label = Label(self.form_frame, text=campo)
             label.grid(row=2 * i + 2, column=0)
-            entry = Entry(self.frame, width=30, show="*")  # show="*" para ocultar la contraseña
+            entry = Entry(self.form_frame, width=30, show="*" if campo == "Contraseña" else "")
             entry.grid(row=2 * i + 3, column=0)
             self.entries[campo] = entry
 
         # Separador después de los campos
-        self.separador(2 * len(campos) + 2, 0)
+        self.separador(2 * len(campos) + 2, 0, self.form_frame)
 
         # Label para mensajes de error
-        self.error_label = Label(self.frame, text="", fg="red")
+        self.error_label = Label(self.form_frame, text="", fg="red")
         self.error_label.grid(row=2 * len(campos) + 4, column=0, pady=10)
 
         # Botón CONFIRMAR
-        button = Button(self.frame, text="CONFIRMAR", command=self.validar_campos)
+        button = Button(self.form_frame, text="CONFIRMAR", command=self.validar_campos)
         button.grid(row=2 * len(campos) + 2, column=0, pady=10)
 
         # Botón REGISTRARSE
-        button_registrar = Button(self.frame, text="REGISTRARSE", command=self.ir_a_registrar)
+        button_registrar = Button(self.form_frame, text="REGISTRARSE", command=self.ir_a_registrar)
         button_registrar.grid(row=2 * len(campos) + 3, column=0, pady=10)
 
-    def separador(self, fila, columna):
-        separador = ttk.Separator(self.frame, orient='horizontal')
+    def cargar_imagen(self, ruta_imagen):
+        try:
+            imagen = Image.open(ruta_imagen)
+            imagen = imagen.resize((200, 200), Image.LANCZOS)  # Ajusta el tamaño de la imagen
+            self.imagen_tk = ImageTk.PhotoImage(imagen)
+            self.label_imagen = Label(self.frame, image=self.imagen_tk)
+            self.label_imagen.grid(row=0, column=0, padx=10, pady=10)
+        except Exception as e:
+            print(f"Error al cargar la imagen: {e}")
+
+    def separador(self, fila, columna, frame):
+        separador = ttk.Separator(frame, orient='horizontal')
         separador.grid(row=fila, column=columna, columnspan=3, sticky='ew', pady=20)
 
     def ir_a_registrar(self):
         # Función para abrir la ventana de registro
         self.root.withdraw()  # Oculta la ventana actual
         registrar_root = Tk()  # Crea una nueva ventana para el registro
-        registrar_usuario = RegistroUsuario(registrar_root)
+        registrar_usuario = RegistroUsuario(registrar_root, self.root)  # Pasa la ventana de login a RegistroUsuario
         registrar_root.mainloop()
 
     def validar_campos(self):
@@ -100,6 +118,7 @@ class Login:
     def limpiar_campos(self):
         for entry in self.entries.values():
             entry.delete(0, 'end')
+
 
 if __name__ == "__main__":
     root = Tk()

@@ -1,8 +1,6 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
 
-import login
-
 
 def separador(fila, columna, frame):
     separador = ttk.Separator(frame, orient='horizontal')
@@ -10,8 +8,9 @@ def separador(fila, columna, frame):
 
 
 class RegistroUsuario:
-    def __init__(self, root):
+    def __init__(self, root, login_root):
         self.root = root
+        self.login_root = login_root  # Guarda la referencia de la ventana de login
         self.root.title("Constructora BYTEBUSTERS | Registración")
 
         # Frame
@@ -42,22 +41,21 @@ class RegistroUsuario:
 
         # Label para mensajes de error
         self.error_label = Label(self.frame, text="", fg="red")
-        self.error_label.grid(row=2 * len(campos) + 4, column=0, pady=10)
+        self.error_label.grid(row=2 * len(campos) + 3, column=0, pady=10)
 
         # Botón CONFIRMAR
         button = Button(self.frame, text="CONFIRMAR", command=self.validar_campos)
-        button.grid(row=2 * len(campos) + 3, column=0, pady=10)
+        button.grid(row=2 * len(campos) + 2, column=0, pady=10)
 
         # Botón VOLVER
         button = Button(self.frame, text="VOLVER", command=self.volver_al_login) # Funcion para volver
         button.grid(row=2 * len(campos) + 4, column=0, pady=10)
 
     def volver_al_login(self):
+        import login
         # Función para volver al login
         self.root.withdraw()  # Oculta la ventana actual
-        Login_root = Tk()  # Crea una nueva ventana para volver al login
-        login_usuario = login.Login(Login_root)  # crea un objeto de tipo login en la ventana Login_root
-        Login_root.mainloop() # ciclo de la ventana
+        self.login_root.deiconify()  # Muestra la ventana de login nuevamente
 
     def validar_campos(self):
         # Me aseguro que no tenga problemas (otra vez...) con las variables imprimiéndolas

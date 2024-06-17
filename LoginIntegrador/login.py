@@ -2,6 +2,7 @@ import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
 from PIL import Image, ImageTk
 from registro_usuarios import RegistroUsuario  # Importa la clase RegistroUsuario
+import bcrypt  # Librería para encriptar la contraseña
 
 class Login:
     def __init__(self, root):
@@ -74,7 +75,7 @@ class Login:
 
     def validar_campos(self):
         try:
-            usuario = self.entries['Usuario'].get()
+            usuario = self.entries['Usuario'].get()  # Obtenemos los valores usuario y contraseña
             contraseña = self.entries['Contraseña'].get()
 
             if usuario and contraseña:
@@ -87,13 +88,21 @@ class Login:
 
                     with conexion:
                         with conexion.cursor() as cursor:
-                            query = "SELECT * FROM usuarios WHERE usuario = %s AND contrasenia = %s"
-                            cursor.execute(query, (usuario, contraseña))
-                            usuario_valido = cursor.fetchone()
+                            query = "SELECT contrasenia FROM usuarios WHERE usuario = %s"
+                            cursor.execute(query, (usuario,))
+                            resultado = cursor.fetchone()
 
-                            if usuario_valido:
-                                self.error_label.config(text="Inicio de sesión exitoso", fg="green")
-                                print("Inicio de sesión exitoso para:", usuario)
+                            if resultado:
+                                #  resultado[0] es el hash creado en la base de datos. encode('utg-8') Convierte este
+                                #  hash en una secuencia de bytes utilizando la codificación UTF-8
+                                contraseña_encriptada = resultado[0].encode('utf-8')
+                                #  la funcion bcryptpw recupera la salt del hash guardado en contraseña_encriptada
+                                if bcrypt.checkpw(contraseña.encode('utf-8'), contraseña_encriptada):
+                                    self.error_label.config(text="Inicio de sesión exitoso", fg="green")
+                                    print("Inicio de sesión exitoso para:", usuario)
+                                else:
+                                    self.error_label.config(text="Usuario o contraseña incorrectos", fg="red")
+                                    print("Usuario o contraseña incorrectos")
                             else:
                                 self.error_label.config(text="Usuario o contraseña incorrectos", fg="red")
                                 print("Usuario o contraseña incorrectos")

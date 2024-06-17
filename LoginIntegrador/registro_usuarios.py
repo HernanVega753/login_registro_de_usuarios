@@ -1,5 +1,6 @@
 import psycopg2
 from tkinter import Tk, Frame, Label, Entry, ttk, Button
+import bcrypt
 
 
 def separador(fila, columna, frame):
@@ -58,11 +59,7 @@ class RegistroUsuario:
         self.login_root.deiconify()  # Muestra la ventana de login nuevamente
 
     def validar_campos(self):
-        # Me aseguro que no tenga problemas (otra vez...) con las variables imprimiéndolas
-        print("Claves en entries:", self.entries.keys())
-
-        try:
-            # Extraigo el valor de los entry guardados en el diccionario entries en variables
+        try:  # Intento obtener los valores ingresados y los guardo en variables
             nombre = self.entries['Nombre'].get()
             apellido = self.entries['Apellido'].get()
             telefono = self.entries['Teléfono'].get()
@@ -70,53 +67,51 @@ class RegistroUsuario:
             usuario = self.entries['Usuario'].get()
             contraseña = self.entries['Contraseña'].get()
             confirmar_contraseña = self.entries['Confirmar Contraseña'].get()
-
-            # Verifico si todos los campos están llenos
+            #  Comprobación de que los campos poseen contenido
             if nombre and apellido and telefono and email and usuario and contraseña and confirmar_contraseña:
-                # Verifico si las contraseñas coinciden
-                if contraseña == confirmar_contraseña:
-                    #  Confirmo que el registro fue exitoso
+                if contraseña == confirmar_contraseña:  # confirmación de contraseña
+                    #  Utilizo un salt (que añade un valor aleatorio en la contraseña ingresada)
+                    #  utilizando la cadena de formato utf-8. Dentro de la función bcrypt.hashpw
+                    #  que transforma ambos valores en bytes para ser guardados en la base de datos
+                    #  desde la variable contraseña_encriptada
+                    contraseña_encriptada = bcrypt.hashpw(contraseña.encode('utf-8'), bcrypt.gensalt())
                     self.error_label.config(text="Registrado Correctamente", fg="green")
-                    print("Usuario guardado correctamente")  # también confirmo en consola
+                    print("Usuario guardado correctamente")
 
-                    try:  # Manejo de excepciones basado en lo visto en clase logger_base
-                        conexion = psycopg2.connect(user='postgres',  # Llamo la conexión
+                    try:
+                        conexion = psycopg2.connect(user='postgres',
                                                     password='admin',
                                                     host='127.0.0.1',
                                                     port='5432',
-                                                    # Base de datos creada en PosgretSQL para el Integrador
                                                     database='integrador_constructora')
 
-                        with conexion:  # Uso de with
+                        with conexion:
                             with conexion.cursor() as cursor:
                                 sentencia = (
                                     'INSERT INTO usuarios (nombre, apellido, telefono, email, usuario, contrasenia) VALUES ('
                                     '%s, %s, %s, %s, %s, %s)')
-                                valores = (nombre, apellido, telefono, email, usuario, contraseña)  # Es una tupla
-                                cursor.execute(sentencia, valores)  # De esta manera ejecutamos la sentencia
+                                valores = (
+                                nombre, apellido, telefono, email, usuario, contraseña_encriptada.decode('utf-8'))
+                                cursor.execute(sentencia, valores)
                                 registros_insertados = cursor.rowcount
                                 print(f'Los registros insertados son: {registros_insertados}')
 
-                    except Exception as e:  # Manejo de excepciones
+                    except Exception as e:
                         self.error_label.config(text=f'Ocurrió un error: {e}')
                         print(f'Ocurrió un error: {e}')
 
-                    finally:  # cierre de conexion con base de datos
+                    finally:
                         if 'conexion' in locals():
                             conexion.close()
 
-                    # Limpio los entry, ya utilizados
                     self.limpiar_campos()
                 else:
-                    # Mostrar mensaje de error si las contraseñas no coinciden
                     self.error_label.config(text="Las contraseñas no coinciden")
             else:
-                # Mostrar mensaje de error si no todos los campos están llenos
                 self.error_label.config(text="Por favor, llene todos los campos.")
         except KeyError as e:
             self.error_label.config(text=f"Error al obtener el campo: {e}")
             print(f"Error al obtener el campo: {e}")
-
     def limpiar_campos(self):  # Funcion para limpiar los campos
         # Limpiar todos los campos de entrada
         for entry in self.entries.values():
